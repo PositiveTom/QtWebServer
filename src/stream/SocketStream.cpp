@@ -12,7 +12,7 @@ recv > 0 则可能返回0～10之间的任何一个数，那么此时需要人�
 
 目前这个读取函数, 只适用于, buffer(4KB) 内存大于等于缓冲区队列数据的情况
 */
-inline int read_socket_non_block(socket_t sock, char* ptr, size_t size) {
+int read_socket_non_block(socket_t sock, char* ptr, size_t size) {
     int ret = 0;
     int cur_bytes_read = 0; /*读取的总字节数*/
     for(;;) {
@@ -27,7 +27,7 @@ inline int read_socket_non_block(socket_t sock, char* ptr, size_t size) {
         if(ret < 0) {
             if((errno == EAGAIN) || (errno == EWOULDBLOCK) || (errno == EINTR)) {
                 /*非阻塞模式,表示此时没有数据可读, 或者已经读够了*/
-                LOG(INFO) << "non block";
+                // LOG(INFO) << "non block";
                 break;
             }
             LOG(FATAL) << "read error!";

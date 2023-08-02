@@ -8,9 +8,9 @@
 #include <glog/logging.h>
 
 // #include <memorypool/StackAlloc.h>
-#include <server/HttpServer.h>
+// #include <server/HttpServer.h>
 
-inline int read_socket_non_block(socket_t sock, void* ptr, size_t size);
+int read_socket_non_block(socket_t sock, void* ptr, size_t size);
 
 /*具体类, 一次接收整个报文流*/
 class SocketStream : public Stream {

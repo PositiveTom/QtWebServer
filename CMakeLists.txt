@@ -46,6 +46,7 @@ list(APPEND ALL_SRC
         src/stream/stream_line_reader.cpp
         src/server/HttpServer.cpp
         src/server/Server.cpp
+        src/http/Request.cpp
 )
 
 QT_ADD_STATIC_LIB(${PROJECT_NAME} ${ALL_SRC})

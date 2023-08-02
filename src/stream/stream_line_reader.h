@@ -2,7 +2,7 @@
 #define STREAM_LINE_READER_H
 
 #include <stream/stream.h>
-
+#include <glog/logging.h>
 class Stream;
 
 namespace http {

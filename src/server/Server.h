@@ -46,10 +46,10 @@ public:
     int AvailableMemory() const; /*返回可用内存池数量*/ 
 
     virtual void StartCreateServer() = 0;           /*创建ipv4服务器*/
-    virtual int TakeOutTCPConnection() = 0;        /*拿出TCP连接*/
-    virtual void ReadRequest() = 0;                 /*读请求, 多线程函数*/
-    virtual void ProcessRequest() = 0;              /*处理请求, 多线程函数*/
-    virtual void WriteResponse() = 0;               /*写响应, 多线程函数*/
+    virtual int TakeOutTCPConnection() = 0;         /*取出TCP连接*/
+    // virtual void ReadRequest(int client_fd) = 0;                 /*读请求, 多线程函数*/
+    // virtual void ProcessRequest() = 0;              /*处理请求, 多线程函数*/
+    // virtual void WriteResponse() = 0;               /*写响应, 多线程函数*/
 
 protected:
     // std::shared_ptr<MemoryPool<char>> m_IOMemory;   /*IO读写缓冲队列内存池*/
@@ -69,11 +69,12 @@ protected:
 /*工厂方法模式创建IO复用对象类, 用于切换poll select epoll*/
 class IOMultiplex { /*产品*/
 public:
-    friend Server;
+    // friend Server;
     IOMultiplex(Server* srv) : server(srv) {}
     virtual void MonitorProactorFd() = 0; // TODO
     /*监听文件描述符, 并且解析Request, 处理Request, 响应Request*/
     virtual void MonitorReactorFd(const IOMultiplexParam* param) = 0;
+    // virtual void ProcessRequest(Stream& stream) = 0;
     virtual ~IOMultiplex(){}
 protected:
     Server* server;
