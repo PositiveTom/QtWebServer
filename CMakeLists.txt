@@ -24,7 +24,11 @@ list(APPEND ALL_SRC
         src/timer/timerwheel.cpp
         src/stream/stream.cpp
         src/stream/bufferstream.cpp
+        src/stream/socketstream.cpp
+        src/stream/httpbuffer.cpp
         src/server/server.cpp
+        src/server/selectserver.cpp
+        src/utils/tool.cpp
 )
 
 QT_ADD_STATIC_LIB(${PROJECT_NAME} ${ALL_SRC})

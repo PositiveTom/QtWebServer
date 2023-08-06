@@ -1,6 +1,6 @@
 #include <stream/bufferstream.h>
 
-BufferStream::BufferStream(int sock, IOCachPtr iocaches) : 
+BufferStream::BufferStream(socket_t sock, IOCachPtr iocaches) : 
 mSock(sock), mIOCaches(iocaches) 
 {
 
