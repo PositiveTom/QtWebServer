@@ -1,8 +1,6 @@
 #include <server/selectserver.h>
 
 SelectServer::SelectServer() : Server() {
-    mTaskqueue = ThreadPool::getInstance();
-    mKeepalivemaxcount = 5;
 }
 
 void SelectServer::reactorListen(std::string ip, uint16_t port, int backlog, int socket_flags) {
@@ -37,7 +35,9 @@ void SelectServer::reactorListen(std::string ip, uint16_t port, int backlog, int
             }
             break;
         }
-        mTaskqueue->enqueue([this, sock](){processAndCloseSocket(sock);});
+        mTaskqueue->enqueue([this, sock](){
+            this->processAndCloseSocket(sock, this->allocateMemory());
+        });
     }
 }
 
@@ -55,10 +55,20 @@ ssize_t SelectServer::selectRead(socket_t sock) {
     });
 }
 
-bool SelectServer::processAndCloseSocket(socket_t sock) {
+/**
+ * @brief 多线程函数
+*/
+bool SelectServer::processAndCloseSocket(socket_t sock, IOCachPtr memory_pool) {
     time_t count = mKeepalivemaxcount;
     while(mSrvsock != -1 && count > 0) {
+        SocketStream strm(mSrvsock);
+        StreamLineReader stream_line_reader(strm, memory_pool);
         
+
+
     }
+
+
+    this->deallocateMemory(memory_pool);
     return true;
 }

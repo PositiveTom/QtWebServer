@@ -8,6 +8,7 @@
 class StreamLineReader {
 public:
     StreamLineReader(Stream& strm, IOCachPtr iocaches);
+    bool getLine();
 
 private:
     Stream& mStrm;

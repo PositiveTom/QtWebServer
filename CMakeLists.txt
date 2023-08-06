@@ -25,7 +25,7 @@ list(APPEND ALL_SRC
         src/stream/stream.cpp
         src/stream/bufferstream.cpp
         src/stream/socketstream.cpp
-        src/stream/httpbuffer.cpp
+        src/stream/streamlinereader.cpp
         src/server/server.cpp
         src/server/selectserver.cpp
         src/utils/tool.cpp

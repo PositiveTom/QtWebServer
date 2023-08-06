@@ -1,5 +1,15 @@
 #include <server/server.h>
 
+Server::Server() {
+    mTaskqueue = ThreadPool::getInstance();
+    mKeepalivemaxcount = 5;
+    mMaxMemoryBlocks = 20;
+    for(size_t i=0; i<mTaskqueue->WorkerNums(); i++) {
+        mMemorypoll.push(std::make_shared<IOCach>(4096, '\0'));
+    }
+    mCurrentMemoryBlocks = mMemorypoll.size();
+}
+
 void Server::createBindToPort(std::string ip, uint16_t port, int backlog, int socket_flags) {
     while(true) {
         /*创建socket*/
@@ -34,3 +44,34 @@ void Server::createBindToPort(std::string ip, uint16_t port, int backlog, int so
 int Server::closeSocket(socket_t sock) {
     return close(sock);
 }
+
+/**
+ * @brief 从服务器的内存池块中分配一块可用的内存池给子线程
+*/
+IOCachPtr Server::allocateMemory() {
+    std::unique_lock<std::mutex> lock(mMemorylock);
+    while(mMemorypoll.empty() && mCurrentMemoryBlocks >= mMaxMemoryBlocks) {
+        mCondition.wait(lock);
+    }
+    IOCachPtr memoryBlock = nullptr;
+    if(!mMemorypoll.empty()) {
+        memoryBlock = mMemorypoll.front();
+        mMemorypoll.pop();
+    } else {
+        memoryBlock = std::make_shared<IOCach>(4096, '\0');
+        ++mCurrentMemoryBlocks;
+    }
+    return memoryBlock;
+}
+
+/**
+ * @brief 归还内存给服务器
+*/
+void Server::deallocateMemory(IOCachPtr memoryblock) {
+    std::lock_guard<std::mutex> lock(mMemorylock);
+    memoryblock->assign(memoryblock->size(), '\0');
+    mMemorypoll.push(memoryblock);
+    mCondition.notify_one();
+}
+
+
