@@ -35,11 +35,11 @@ public:
     TimerEventInterface(TimerWheelSlot* slot) : m_slot(slot), m_next(nullptr), m_prev(nullptr) {}
     TimerEventInterface(TimerWheelSlot* slot, TimerEventInterface* next, TimerEventInterface* prev) : m_slot(slot), m_next(next), m_prev(prev) {}
     virtual ~TimerEventInterface() {}
-    inline void cancel();                   /*取消事件*/
+    void cancel();                   /*取消事件*/
     Tick scheduled_at() const { return m_scheduled_at; }
 
 protected:
-    virtual void execte() = 0;              /*执行事件的回调函数*/
+    virtual void execute() = 0;              /*执行事件的回调函数*/
     void relink(TimerWheelSlot* new_slot);  /*把当前事件移动到slot指向的槽里面, 其实就是双向链表的插入*/
     void set_scheduled_at(Tick ts) {m_scheduled_at = ts;}
 
@@ -49,8 +49,6 @@ protected:
     TimerEventInterface* m_prev; /*前一个事件节点*/
     Tick m_scheduled_at;         /*当前事件执行的时刻点*/
 };
-
-
 
 /*时间槽--双向链表*/
 class TimerWheelSlot{
@@ -86,7 +84,7 @@ private:
 public:
     static TimerWheel* getInstance();                               /*singlton模式创建实例*/
     void startTick(Tick us, Tick now = 0);                          /*初始化相关参数, 以及初始化推进tick用于的SIGALARM信号*/
-    void schedule(TimerEventInterface* event, Tick& delta);   /*设置事件event在 cur_t + delta 时刻开始运行*/
+    void schedule(TimerEventInterface* event, Tick delta);         /*设置事件event在 cur_t + delta 时刻开始运行*/
     inline bool advance(Tick delta, size_t max_events=std::numeric_limits<Tick>::max(), int level=0);  /*在第level层时间轮盘推进delta个tick*/
     // void readCurrenttime(); /*读取当前时间戳并且转换得到各个轮盘上的当前值*/
     inline bool process_current_slot(Tick now, size_t max_events=std::numeric_limits<Tick>::max(), int level=0); /*在now时刻,处理第level层上对应槽的事件*/

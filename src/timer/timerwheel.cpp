@@ -72,7 +72,7 @@ void TimerWheel::startTick(Tick us, Tick now) {
  * @brief 设置event从当前时刻开始, 经历delta个Tick周期后开始执行. //TODO 这里寻找槽的方式是真的巧妙啊！！！就是太绕了！！！
  * @param delta delta个Tick周期, 这里的delta的单位是第一个时间轮盘上的单位
 */
-void TimerWheel::schedule(TimerEventInterface* event, Tick& delta) {
+void TimerWheel::schedule(TimerEventInterface* event, Tick delta) {
     // assert(delta > 0);
     if(delta <= 0) {
         LOG(ERROR) << "delta:" << delta;
@@ -156,7 +156,7 @@ bool TimerWheel::process_current_slot(Tick now, size_t max_events, int level) {
             /*如果不是第0层时间轮盘,则需要进行事件的降级操作*/
             if(cur_time > event->scheduled_at()) {
                 /*如果事件已经过期, 立即执行*/
-                event->execte();
+                event->execute();
                 if(!--max_events) return false;
             } else {
                 /*如果事件还没有过期, 进行事件的降级, 通过反复让事件relink, 从而达到让事件接近时间轮复用, 最终变到第一个时间轮盘上进行执行*/
@@ -165,7 +165,7 @@ bool TimerWheel::process_current_slot(Tick now, size_t max_events, int level) {
             }
         } else {
             /*如果当前是第0层时间轮盘*/
-            event->execte();
+            event->execute();
             if(!--max_events) return false; /*直到最大事件数*/
         }
     }

@@ -10,14 +10,14 @@ void SelectServer::reactorListen(std::string ip, uint16_t port, int backlog, int
 
     /*设置非阻塞模式*/
     fcntl(mSrvsock, F_SETFL, fcntl(mSrvsock, F_GETFL) | O_NONBLOCK);
-
     while(mSrvsock != -1) {
-        /*返回就绪文件描述符的数量, 如果accept没有取走就绪文件描述符,那么这里会一直触发！！！始终返回就绪文件描述符的有效个数，最大是5，因为你的backlog设置是5*/
-        ssize_t val = selectRead(mSrvsock);
+        /*返回就绪文件描述符的数量, 如果accept没有取走就绪文件描述符, 那么这里会一直触发！！！始终返回就绪文件描述符的有效个数，最大是5，因为你的backlog设置是5*/
+        ssize_t val = select_read(mSrvsock);
         if(val == 0) continue;
 
-        /*从全连接队列中取出一个就绪的文件描述符*/        
+        /*从全连接队列中取出一个就绪的文件描述符, 这里取出来的socket一定不是mSorsock*/        
         socket_t sock = accept(mSrvsock, nullptr, nullptr); 
+
         if(sock == -1) {
             if(errno == EMFILE) {
                 /*代表文件描述符已经达到上限, 进入休眠期, 给操作系统一些时间来释放资源*/
@@ -35,40 +35,85 @@ void SelectServer::reactorListen(std::string ip, uint16_t port, int backlog, int
             }
             break;
         }
+        /*设置非阻塞模式*/
+        // LOG(WARNING) << "mSrvsock: " << mSrvsock;
+
+        fcntl(sock, F_SETFL, fcntl(sock, F_GETFL) | O_NONBLOCK);
         mTaskqueue->enqueue([this, sock](){
-            this->processAndCloseSocket(sock, this->allocateMemory());
+            this->processAndCloseSocket(sock);
         });
     }
 }
 
-ssize_t SelectServer::selectRead(socket_t sock) {
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(mSrvsock, &fds);
-
-    struct timeval tv;
-    tv.tv_sec = 0;
-    tv.tv_usec = 0;
-
-    return handle_EINTR([&](){
-        return select(static_cast<int>(sock+1), &fds, nullptr, nullptr, &tv);
-    });
-}
 
 /**
  * @brief 多线程函数
 */
-bool SelectServer::processAndCloseSocket(socket_t sock, IOCachPtr memory_pool) {
+bool SelectServer::processAndCloseSocket(socket_t sock) {
+    LOG(WARNING) << "thread begin " << sock;
+    bool data_has_coming = false;
     time_t count = mKeepalivemaxcount;
-    while(mSrvsock != -1 && count > 0) {
-        SocketStream strm(mSrvsock);
-        StreamLineReader stream_line_reader(strm, memory_pool);
-        
 
+    /*申请行内存和buffer内存*/
+    IOCachPtr line_memory = nullptr;
+    IOCachPtr io_memory = nullptr;
+    
+    /*设置5s后的定时器事件, 在5s之内有数据到达就取消这个事件，直到下一次运行到这里再设置这个定时器事件，这个事件是设置一个值，告诉系统内已经过了保活时间了，需要取消这个客户端文件描述符*/
+    
+    while(mSrvsock != -1 && count > 0 && keepAlive(sock)) {
+        if(!data_has_coming) {
+            line_memory = this->allocateMemory();
+            io_memory = this->allocateMemory();
+            data_has_coming = true;
+        }
+        // io_memory->assign(io_memory->size(), '\0');
+        // line_memory->assign(line_memory->size(), '\0');
+
+        // LOG(WARNING) << line_memory->size();
+        // LOG(WARNING) << io_memory->size();
+
+        SocketStream strm(sock, io_memory);
+        this->processRequest(strm, line_memory);
+    }
+    if(data_has_coming) {
+        this->deallocateMemory(io_memory);
+        this->deallocateMemory(line_memory);
+    }
+    // LOG(WARNING) << line_memory->size();
+    // LOG(WARNING) << io_memory->size();
+    /*关闭socket*/
+    shutdown(sock, SHUT_RDWR);//关闭套接字读写方向
+    this->closeSocket(sock);
+    LOG(WARNING) << "thread end";
+    return true;
+}
+
+bool SelectServer::keepAlive(socket_t sock) {
+    /*1. 给定时器安排timeout时间之后需要执行的事件*/
+    bool isCloseSock = false;                  //是否关闭sock
+    SockNonActiveEvent sock_event(isCloseSock);//创建事件
+    mTimer->schedule(&sock_event, timeout);    //安排事件在timeouts后准备执行
+    while(true) {
+        ssize_t val = select_read(sock);        //监听是否数据传输过来
+        // LOG(INFO) << "VAL:" << val;
+        if(val == -1){                         //代表出错
+            sock_event.cancel();               //取消事件
+            return false;
+        }                      
+        else if(val == 0) {                    //此端口非活跃
+            if(isCloseSock == true) {          //允许的非活跃时间已到
+                // LOG(INFO) << "isCloseSock:" << isCloseSock;
+                // LOG(WARNING) << "NON ACTIVE";
+                return false;                   
+            }
+            // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            continue;
+            /*cpp-httplib还多了一步延时1ms*/
+        } else {                               //此端口有数据传输过来
+            // LOG(WARNING) << "HELLO";
+            sock_event.cancel();
+            return true;
+        }
 
     }
-
-
-    this->deallocateMemory(memory_pool);
-    return true;
 }

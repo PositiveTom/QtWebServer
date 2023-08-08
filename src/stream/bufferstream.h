@@ -2,15 +2,19 @@
 #define BUFFERSTREAM_H
 
 #include <stream/stream.h>
-#include <utils/type.h>
 
+/**
+ * @brief 内部只有一个动态内存
+*/
 class BufferStream : public Stream {
 public:
-    BufferStream(socket_t sock, IOCachPtr iocaches);
-    virtual ssize_t read(char* ptr, size_t size) override;
+    virtual bool is_readable() const override {}; //TODO
+    virtual ssize_t read(char* ptr, size_t size) override{}; //TODO
+    virtual ssize_t write(const char* ptr, size_t size) override;
+    const std::string &get_buffer() const { return buffer; }
+
 private:
-    socket_t mSock;      //要读或者写的套接字
-    IOCachPtr mIOCaches; //存储IO读写数据的缓存区指针
-}; 
+    std::string buffer;
+};
 
 #endif

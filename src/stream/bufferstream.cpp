@@ -1,11 +1,6 @@
 #include <stream/bufferstream.h>
 
-BufferStream::BufferStream(socket_t sock, IOCachPtr iocaches) : 
-mSock(sock), mIOCaches(iocaches) 
-{
-
-}
-
-ssize_t BufferStream::read(char* ptr, size_t size) {
-    return 0;
+ssize_t BufferStream::write(const char* ptr, size_t size) {
+    buffer.append(ptr, size);
+    return static_cast<ssize_t>(size);
 }
