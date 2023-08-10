@@ -2,9 +2,9 @@
 
 Server::Server() {
     mTaskqueue = ThreadPool::getInstance();
-    mTimer = TimerWheel::getInstance();
-    mTimer->startTick(5000);
-    timeout = 5 * 1e6 / 5000;
+    // mTimer = TimerWheel::getInstance();
+    // mTimer->startTick(5000);
+    timeout = 5; // ms
     mKeepalivemaxcount = 5;
     mMaxMemoryBlocks = 20;
     for(size_t i=0; i<mTaskqueue->WorkerNums(); i++) {

@@ -60,6 +60,10 @@ public:
     const TimerEventInterface* events() const {return m_events;} /*返回当前双向链表的头节点指针*/
     TimerEventInterface* pop_event() { /*弹出并删除头节点*/
         auto events = m_events;
+        
+        // LOG(INFO) << reinterpret_cast<void*>(this); // 0x10081ac68
+        // LOG(INFO) << reinterpret_cast<void*>(m_events); // 0x0 空地址
+
         m_events = events->m_next; /*1.让下一个节点变成头节点*/
         if(m_events) {
             /*2.如果有下一个节点, 让下一个节点的前节点指向空*/
@@ -74,7 +78,7 @@ private:
     TimerEventInterface* m_events; /*双向链表的头节点, 也是有数据的！！！并不是环形链表*/
 };
 
-/*时间轮*/
+/*时间轮, 多线程操作同一个共享内存造成段错误！！！！*/
 class TimerWheel {
 private:
     TimerWheel(){}

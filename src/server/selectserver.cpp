@@ -1,5 +1,8 @@
 #include <server/selectserver.h>
 
+// bool isCloseSock = false;                  //是否关闭sock
+// SockNonActiveEvent sock_event(isCloseSock);//创建事件
+
 SelectServer::SelectServer() : Server() {
 }
 
@@ -50,13 +53,13 @@ void SelectServer::reactorListen(std::string ip, uint16_t port, int backlog, int
  * @brief 多线程函数
 */
 bool SelectServer::processAndCloseSocket(socket_t sock) {
-    LOG(WARNING) << "thread begin " << sock;
+    LOG(WARNING) << "thread begin :" << sock << " " << std::this_thread::get_id();
     bool data_has_coming = false;
     time_t count = mKeepalivemaxcount;
 
     /*申请行内存和buffer内存*/
-    IOCachPtr line_memory = nullptr;
-    IOCachPtr io_memory = nullptr;
+    IOCachPtr line_memory = std::make_shared<IOCach>(2048, '\0');
+    IOCachPtr io_memory = std::make_shared<IOCach>(2048, '\0');
     
     /*设置5s后的定时器事件, 在5s之内有数据到达就取消这个事件，直到下一次运行到这里再设置这个定时器事件，这个事件是设置一个值，告诉系统内已经过了保活时间了，需要取消这个客户端文件描述符*/
     
@@ -66,8 +69,8 @@ bool SelectServer::processAndCloseSocket(socket_t sock) {
             io_memory = this->allocateMemory();
             data_has_coming = true;
         }
-        // io_memory->assign(io_memory->size(), '\0');
-        // line_memory->assign(line_memory->size(), '\0');
+        io_memory->assign(io_memory->size(), '\0');
+        line_memory->assign(line_memory->size(), '\0');
 
         // LOG(WARNING) << line_memory->size();
         // LOG(WARNING) << io_memory->size();
@@ -84,34 +87,59 @@ bool SelectServer::processAndCloseSocket(socket_t sock) {
     /*关闭socket*/
     shutdown(sock, SHUT_RDWR);//关闭套接字读写方向
     this->closeSocket(sock);
-    LOG(WARNING) << "thread end";
+    LOG(WARNING) << "thread end " << std::this_thread::get_id();
     return true;
 }
 
+// bool SelectServer::keepAlive(socket_t sock) {
+//     /*1. 给定时器安排timeout时间之后需要执行的事件*/
+//     // bool isCloseSock = false;
+//     bool isCloseSock = false;                  //是否关闭sock
+//     SockNonActiveEvent sock_event(isCloseSock);//创建事件
+//     mTimer->schedule(&sock_event, timeout);    //安排事件在timeouts后准备执行
+//     while(true) {
+//         ssize_t val = select_read(sock);        //监听是否数据传输过来
+//         LOG(INFO) << "VAL:" << val;
+//         if(val == -1){                         //代表出错
+//             sock_event.cancel();               //取消事件
+//             return false;
+//         }                      
+//         else if(val == 0) {                    //此端口非活跃
+//             if(isCloseSock == true) {          //允许的非活跃时间已到
+//                 // LOG(INFO) << "isCloseSock:" << isCloseSock;
+//                 // LOG(WARNING) << "NON ACTIVE";
+//                 return false;                   
+//             }
+//             // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+//             continue;
+//             /*cpp-httplib还多了一步延时1ms*/
+//         } else {                               //此端口有数据传输过来
+//             // LOG(WARNING) << "HELLO";
+//             sock_event.cancel();
+//             return true;
+//         }
+
+//     }
+// }
+
+
 bool SelectServer::keepAlive(socket_t sock) {
     /*1. 给定时器安排timeout时间之后需要执行的事件*/
-    bool isCloseSock = false;                  //是否关闭sock
-    SockNonActiveEvent sock_event(isCloseSock);//创建事件
-    mTimer->schedule(&sock_event, timeout);    //安排事件在timeouts后准备执行
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     while(true) {
         ssize_t val = select_read(sock);        //监听是否数据传输过来
-        // LOG(INFO) << "VAL:" << val;
         if(val == -1){                         //代表出错
-            sock_event.cancel();               //取消事件
             return false;
         }                      
         else if(val == 0) {                    //此端口非活跃
-            if(isCloseSock == true) {          //允许的非活跃时间已到
-                // LOG(INFO) << "isCloseSock:" << isCloseSock;
-                // LOG(WARNING) << "NON ACTIVE";
-                return false;                   
+            auto current = std::chrono::steady_clock::now();
+            // std::chrono::duration<uint64_t> ms = (current - start).count() * 1000;
+            std::chrono::microseconds ms = std::chrono::duration_cast<std::chrono::microseconds>(current - start);
+            if(ms.count() >= timeout) {
+                return false;
             }
-            // std::this_thread::sleep_for(std::chrono::milliseconds(1));
             continue;
-            /*cpp-httplib还多了一步延时1ms*/
         } else {                               //此端口有数据传输过来
-            // LOG(WARNING) << "HELLO";
-            sock_event.cancel();
             return true;
         }
 

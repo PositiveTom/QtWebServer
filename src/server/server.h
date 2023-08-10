@@ -50,7 +50,7 @@ protected:
     socket_t mSrvsock;           //服务器文件描述符
     ThreadPool* mTaskqueue;      //线程池
     time_t mKeepalivemaxcount;   //保持活跃的最大连接数
-    uint64_t timeout;            //保活超时时间,秒
+    uint64_t timeout;            //保活超时时间,毫秒
     TimerWheel* mTimer;
 
     QueueMemoryPool mMemorypoll; //线程池

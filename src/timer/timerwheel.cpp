@@ -147,8 +147,8 @@ bool TimerWheel::process_current_slot(Tick now, size_t max_events, int level) {
     size_t slot_index = now & MASK;
     auto slot = &m_slots[level][slot_index]; /*取出第level个时间轮盘上时间戳为now时对应的槽*/
 
-    for(;slot->events();) { /*如果当前槽有事件*/
-        // LOG(WARNING) << "event";
+    while(slot->events()) { /*如果当前槽有事件*/
+        // LOG(WARNING) << "event: " << reinterpret_cast<const void*>(slot->events());
         auto event = slot->pop_event(); /*弹出第一个事件*/
         // LOG(WARNING) << "event";
         if(level > 0) {
@@ -199,6 +199,10 @@ void TimerEventInterface::relink(TimerWheelSlot* new_slot){ /*节点类, 8件事
         if(prev_event) { /*如果前面有节点*/
             prev_event->m_next = next_event; /*2.让前一个节点指向后面一个节点*/
         } else { /*如果是头节点, 那么就没有前一个节点*/
+            LOG(INFO) << reinterpret_cast<void*>(m_slot);
+            LOG(INFO) << reinterpret_cast<void*>(m_slot->m_events);
+            LOG(INFO) << reinterpret_cast<void*>(next_event);
+
             m_slot->m_events = next_event;   /*3.移除了头节点, 就要让原来槽的链表头指针指向下一个节点*/
         }
     }
