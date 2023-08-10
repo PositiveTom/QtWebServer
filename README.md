@@ -44,8 +44,6 @@ Disks: 439003/11G read, 452278/31G written.
 | -------- | ---------- | -------- | --------------------- | -------------- | --------------- | ---------------- | ----------------- |
 | MacOS        | select          | reactor        | 5s                     | 8140              | 9801 susceed, 36 failed               | 2450 susceed, 4064 failed                | 58 susceed, 18382 failed                 |
 
-
-
 # 调试工具
 ## (1) netstat
 用于检测服务器是否正常创建
@@ -58,7 +56,9 @@ netstat -an | grep LISTEN
 # grep LISTEN 使用 grep 工具来过滤出包含字符串 "LISTEN" 的行
 ```
 
-## (2) webbench
+# 性能测试工具
+
+##  webbench
 ```bash
 ./webbench -c 1 -t 1 http://127.0.0.1:8080/
 # -c : 客户端的数量
