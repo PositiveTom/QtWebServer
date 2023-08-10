@@ -7,6 +7,11 @@
 #include <sys/socket.h>
 #include <utils/type.h>
 #include <glog/logging.h>
+
+#ifdef __linux__
+  #include <functional>
+#endif
+
 /**
  * @brief 阻塞io产生的错误码
  * res = -1， errno = EINTR 这种情况实际上很难遇到
