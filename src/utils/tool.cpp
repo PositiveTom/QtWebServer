@@ -29,7 +29,7 @@ ssize_t read_socket(socket_t sock, void* ptr, size_t size, int flags) {
  * 
  * -1 代表没有文件描述符
 */
-ssize_t select_read(socket_t sock) {
+ssize_t select_read(socket_t sock, time_t sec, time_t usec) {
     if(sock >= FD_SETSIZE) return 1;
 
     fd_set fds;
@@ -37,12 +37,12 @@ ssize_t select_read(socket_t sock) {
     FD_SET(sock, &fds);
 
     struct timeval tv;
-    tv.tv_sec = 0;
-    tv.tv_usec = 10000;
+    tv.tv_sec = sec;
+    tv.tv_usec = usec;
 
     /*select 不受io端口阻塞的影响！！！！只受自己的超时时间影响*/
     /*select 函数，如果端口的数据一直没有被读取完，那么会一直触发！！！*/
-    return handle_EAGAIN([&](){
+    return handle_EINTR([&](){
         return select(static_cast<int>(sock+1), &fds, nullptr, nullptr, &tv);
     });
 }

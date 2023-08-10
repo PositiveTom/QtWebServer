@@ -69,5 +69,5 @@ ssize_t SocketStream::read(char* ptr, size_t size) {
 }
 
 bool SocketStream::is_readable() const {
-    return select_read(mSock) > 0;
+    return select_read(mSock, 5, 0) > 0;
 }

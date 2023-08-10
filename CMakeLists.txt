@@ -13,7 +13,7 @@ set(EXTERNAL_LIBRARIES "")
 
 find_package(glog REQUIRED)
 list(APPEND EXTERNAL_LIBRARIES glog::glog)
-
+list(APPEND EXTERNAL_LIBRARIES -lpthread)
 include_directories(
     src
     ${EXTERNAL_LIBRARIES_INCLUDE_DIRS}

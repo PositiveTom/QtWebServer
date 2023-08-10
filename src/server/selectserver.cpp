@@ -15,8 +15,8 @@ void SelectServer::reactorListen(std::string ip, uint16_t port, int backlog, int
     fcntl(mSrvsock, F_SETFL, fcntl(mSrvsock, F_GETFL) | O_NONBLOCK);
     while(mSrvsock != -1) {
         /*返回就绪文件描述符的数量, 如果accept没有取走就绪文件描述符, 那么这里会一直触发！！！始终返回就绪文件描述符的有效个数，最大是5，因为你的backlog设置是5*/
-        ssize_t val = select_read(mSrvsock);
-        if(val == 0) continue;
+        // ssize_t val = select_read(mSrvsock);
+        // if(val == 0) continue;
 
         /*从全连接队列中取出一个就绪的文件描述符, 这里取出来的socket一定不是mSorsock*/        
         socket_t sock = accept(mSrvsock, nullptr, nullptr); 
@@ -53,13 +53,14 @@ void SelectServer::reactorListen(std::string ip, uint16_t port, int backlog, int
  * @brief 多线程函数
 */
 bool SelectServer::processAndCloseSocket(socket_t sock) {
-    LOG(WARNING) << "thread begin :" << sock << " " << std::this_thread::get_id();
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+    // LOG(WARNING) << "thread begin :" << sock << " " << std::this_thread::get_id();
     bool data_has_coming = false;
     time_t count = mKeepalivemaxcount;
 
     /*申请行内存和buffer内存*/
-    IOCachPtr line_memory = std::make_shared<IOCach>(2048, '\0');
-    IOCachPtr io_memory = std::make_shared<IOCach>(2048, '\0');
+    IOCachPtr line_memory = nullptr;
+    IOCachPtr io_memory = nullptr;
     
     /*设置5s后的定时器事件, 在5s之内有数据到达就取消这个事件，直到下一次运行到这里再设置这个定时器事件，这个事件是设置一个值，告诉系统内已经过了保活时间了，需要取消这个客户端文件描述符*/
     
@@ -76,7 +77,10 @@ bool SelectServer::processAndCloseSocket(socket_t sock) {
         // LOG(WARNING) << io_memory->size();
 
         SocketStream strm(sock, io_memory);
-        this->processRequest(strm, line_memory);
+        bool ret = this->processRequest(strm, line_memory);
+        if(!ret) {
+            break;
+        }
     }
     if(data_has_coming) {
         this->deallocateMemory(io_memory);
@@ -87,7 +91,8 @@ bool SelectServer::processAndCloseSocket(socket_t sock) {
     /*关闭socket*/
     shutdown(sock, SHUT_RDWR);//关闭套接字读写方向
     this->closeSocket(sock);
-    LOG(WARNING) << "thread end " << std::this_thread::get_id();
+
+    LOG(WARNING) << std::this_thread::get_id() << " thread end " << (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start)).count() * 1e-3 << "ms";
     return true;
 }
 
@@ -127,19 +132,21 @@ bool SelectServer::keepAlive(socket_t sock) {
     /*1. 给定时器安排timeout时间之后需要执行的事件*/
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     while(true) {
-        ssize_t val = select_read(sock);        //监听是否数据传输过来
+        ssize_t val = select_read(sock, 0, 10000);        //监听是否数据传输过来
         if(val == -1){                         //代表出错
             return false;
         }                      
         else if(val == 0) {                    //此端口非活跃
             auto current = std::chrono::steady_clock::now();
             // std::chrono::duration<uint64_t> ms = (current - start).count() * 1000;
-            std::chrono::microseconds ms = std::chrono::duration_cast<std::chrono::microseconds>(current - start);
+            std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(current - start);
             if(ms.count() >= timeout) {
+                // std::cout << "ms:" << ms.count() << std::endl;
                 return false;
             }
             continue;
         } else {                               //此端口有数据传输过来
+            //  正确的情况，这里根本不会等待12ms数据才来，而是1us以内就可以获得数据
             return true;
         }
 

@@ -98,7 +98,11 @@ bool Server::processRequest(Stream& strm, IOCachPtr line_memory) {
     res.version = "HTTP/1.1";
     writeResponse(strm, req, res, line_memory);
     // LOG(WARNING) << line_memory->size();
-
+    if (req.version == "HTTP/1.0" &&
+      req.get_header_value("Connection", 0) != "Keep-Alive") {
+      // LOG(INFO) << "hello";
+      return false;
+    }
 }
 
 // ssize_t write_headers(Stream &strm, const Headers &headers, IOCachPtr line_memory) {

@@ -47,7 +47,7 @@ ssize_t handle_EAGAIN(T fn) {
 }
 
 ssize_t read_socket(socket_t sock, void* ptr, size_t size, int flags);
-ssize_t select_read(socket_t sock);
+ssize_t select_read(socket_t sock, time_t sec, time_t usec);
 
 bool compare_case_ignore(const std::string &a, const std::string &b);
 bool is_space_or_tab(char c);
