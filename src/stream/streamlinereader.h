@@ -6,6 +6,10 @@
 #include <utils/type.h>
 #include <utils/tool.h>
 #include <httpmsg/request.h>
+
+#ifdef __linux__
+#include <assert.h>
+#endif
 /**
  * @brief 内部有一个buffer，用于保存行数据，行数据块是2048字节
  * 内部还有一个动态buffer

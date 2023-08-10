@@ -4,6 +4,10 @@
 #include <queue>
 #include <memory>
 #include <memorypool/MemoryPool.h>
+#ifdef __linux__
+    #include <cstring>
+#endif
+
 
 using socket_t = int;
 using IOCach = std::vector<char, MemoryPool<char>>;

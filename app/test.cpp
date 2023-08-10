@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <array>
 int main(int argc, char* argv[]) {
     std::array<char, 10> buf;
     size_t n = snprintf(buf.data(), buf.size()-1, "%d%dkasjdhadgagd", 7,9);
