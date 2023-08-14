@@ -33,25 +33,24 @@ public:
     Server();
     virtual ~Server() = default;
     virtual void reactorListen(std::string ip, uint16_t port, int backlog, int socket_flags = 0) = 0;
-protected:
+    virtual void proactorListen(std::string ip, uint16_t port, int backlog, int socket_flags = 0) = 0;
     virtual bool processAndCloseSocket(socket_t sock) = 0;
+
+protected:
     void createBindToPort(std::string ip, uint16_t port, int backlog, int socket_flags = 0);
     int closeSocket(socket_t sock);
     IOCachPtr allocateMemory();
     void deallocateMemory(IOCachPtr memoryblock);
     bool processRequest(Stream& strm, IOCachPtr line_memory);
-private:
     bool parseRequestLine(const char* ptr, Request& req);
     bool writeResponse(Stream& strm, const Request& req, Response& res, IOCachPtr line_memory);
-    // bool routing(Request &req, Response &res, Stream &strm);
-    // bool writeResponse(Stream& strm, const Request& req, Response& res, IOCachPtr line_memory);
 
 protected:
     socket_t mSrvsock;           //服务器文件描述符
     ThreadPool* mTaskqueue;      //线程池
     time_t mKeepalivemaxcount;   //保持活跃的最大连接数
     uint64_t timeout;            //保活超时时间,毫秒
-    TimerWheel* mTimer;
+    // TimerWheel* mTimer;
 
     QueueMemoryPool mMemorypoll; //线程池
     std::mutex mMemorylock;

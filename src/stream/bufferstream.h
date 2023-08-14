@@ -8,8 +8,8 @@
 */
 class BufferStream : public Stream {
 public:
-    virtual bool is_readable() const override {}; //TODO
-    virtual ssize_t read(char* ptr, size_t size) override{}; //TODO
+    virtual bool is_readable() const override {return false;}; //TODO
+    virtual ssize_t read(char* ptr, size_t size) override{return 0;}; //TODO
     virtual ssize_t write(const char* ptr, size_t size) override;
     const std::string &get_buffer() const { return buffer; }
 

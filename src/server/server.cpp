@@ -12,7 +12,9 @@ Server::Server() {
     }
     mCurrentMemoryBlocks = mMemorypoll.size();
 }
-
+/**
+ * @brief 创建服务器socket, 并绑定到指定ip地址上
+*/
 void Server::createBindToPort(std::string ip, uint16_t port, int backlog, int socket_flags) {
     while(true) {
         /*创建socket*/

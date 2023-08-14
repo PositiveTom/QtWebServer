@@ -25,10 +25,17 @@ class SelectServer : public Server {
 public:
     SelectServer();
     virtual void reactorListen(std::string ip, uint16_t port, int backlog, int socket_flags = 0) override;
-private:
+    virtual void proactorListen(std::string ip, uint16_t port, int backlog, int socket_flags = 0) override {} //TODO
     virtual bool processAndCloseSocket(socket_t sock) override;
-    // ssize_t selectRead(socket_t sock);
+private:
     bool keepAlive(socket_t sock);
 };
+
+//  1. 依赖倒置原则
+//  2. 开放封闭原则
+//  3. 替换
+//  4. 面向接口编程
+//  5. 优先使用组合而不是继承
+//  6. 单一职责
 
 #endif

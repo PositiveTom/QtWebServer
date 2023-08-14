@@ -1,7 +1,5 @@
 #include <timer/timerwheel.h>
 
-
-
 std::atomic<TimerWheel*> TimerWheel::m_instance;
 std::mutex TimerWheel::m_mutex;
 
@@ -43,7 +41,6 @@ void timer_interrupt_handler(int signum) {
             TimerWheel::m_instance.load(std::memory_order_relaxed)
                 ->process_current_slot(m_now[l], std::numeric_limits<Tick>::max(), l);
         }
-
     }
 }
 
@@ -199,9 +196,9 @@ void TimerEventInterface::relink(TimerWheelSlot* new_slot){ /*节点类, 8件事
         if(prev_event) { /*如果前面有节点*/
             prev_event->m_next = next_event; /*2.让前一个节点指向后面一个节点*/
         } else { /*如果是头节点, 那么就没有前一个节点*/
-            LOG(INFO) << reinterpret_cast<void*>(m_slot);
-            LOG(INFO) << reinterpret_cast<void*>(m_slot->m_events);
-            LOG(INFO) << reinterpret_cast<void*>(next_event);
+            // LOG(INFO) << reinterpret_cast<void*>(m_slot);
+            // LOG(INFO) << reinterpret_cast<void*>(m_slot->m_events);
+            // LOG(INFO) << reinterpret_cast<void*>(next_event);
 
             m_slot->m_events = next_event;   /*3.移除了头节点, 就要让原来槽的链表头指针指向下一个节点*/
         }

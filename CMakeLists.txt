@@ -28,6 +28,7 @@ list(APPEND ALL_SRC
         src/stream/streamlinereader.cpp
         src/server/server.cpp
         src/server/selectserver.cpp
+        src/server/kqueueserver.cpp
         src/utils/tool.cpp
 )
 

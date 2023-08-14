@@ -14,8 +14,8 @@ class SocketStream : public Stream {
 public:
     SocketStream(socket_t sock, IOCachPtr iocache);
     virtual ssize_t read(char* ptr, size_t size) override;
-    virtual ssize_t write(const char* ptr, size_t size) override {}; //TODO
-     virtual int socket() const {return mSock;}
+    virtual ssize_t write(const char* ptr, size_t size) override {return 0;}; //TODO
+    virtual int socket() const override {return mSock;}
     virtual bool is_readable() const override;
 private:
     socket_t mSock;         //要读或者写的套接字
