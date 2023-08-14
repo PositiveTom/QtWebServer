@@ -45,6 +45,9 @@ protected:
     bool parseRequestLine(const char* ptr, Request& req);
     bool writeResponse(Stream& strm, const Request& req, Response& res, IOCachPtr line_memory);
 
+    IOCachPtr allocateMemory_SingleThread();
+    void deallocateMemory_SingleThread(IOCachPtr memoryblock);
+
 protected:
     socket_t mSrvsock;           //服务器文件描述符
     ThreadPool* mTaskqueue;      //线程池

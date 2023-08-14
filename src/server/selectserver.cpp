@@ -21,6 +21,7 @@ void SelectServer::reactorListen(std::string ip, uint16_t port, int backlog, int
         /*从全连接队列中取出一个就绪的文件描述符, 这里取出来的socket一定不是mSorsock*/        
         socket_t sock = accept(mSrvsock, nullptr, nullptr); 
 
+        // std::cout << "sock: " << sock << " errno:" << errno << std::endl;
         if(sock == -1) {
             if(errno == EMFILE) {
                 /*代表文件描述符已经达到上限, 进入休眠期, 给操作系统一些时间来释放资源*/

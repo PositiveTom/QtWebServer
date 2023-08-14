@@ -70,6 +70,22 @@ IOCachPtr Server::allocateMemory() {
 }
 
 /**
+ * @brief proactor模式单线程申请内存
+*/
+IOCachPtr Server::allocateMemory_SingleThread() {
+    IOCachPtr memoryBlock = nullptr;
+    if(!mMemorypoll.empty()) {
+        memoryBlock = mMemorypoll.front();
+        mMemorypoll.pop();
+    } else {
+        memoryBlock = std::make_shared<IOCach>(2048, '\0');
+        ++mCurrentMemoryBlocks;
+    }
+    return memoryBlock;
+}
+
+
+/**
  * @brief 归还内存给服务器
 */
 void Server::deallocateMemory(IOCachPtr memoryblock) {
@@ -78,6 +94,13 @@ void Server::deallocateMemory(IOCachPtr memoryblock) {
     mMemorypoll.push(memoryblock);
     mCondition.notify_one();
 }
+
+void Server::deallocateMemory_SingleThread(IOCachPtr memoryblock) {
+    memoryblock->assign(memoryblock->size(), '\0');
+    mMemorypoll.push(memoryblock);
+}
+
+
 
 /**
  * @brief 处理请求
