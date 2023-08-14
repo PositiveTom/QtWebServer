@@ -18,7 +18,7 @@ include_directories(
     src
     ${EXTERNAL_LIBRARIES_INCLUDE_DIRS}
 )
-
+message(STATUS "${CMAKE_SYSTEM_NAME}")
 list(APPEND ALL_SRC
         src/threadpool/threadpool.cpp
         src/timer/timerwheel.cpp
@@ -28,7 +28,11 @@ list(APPEND ALL_SRC
         src/stream/streamlinereader.cpp
         src/server/server.cpp
         src/server/selectserver.cpp
+        if(CMAKE_SYSTEM_NAME MATCHES Linux)
+        src/server/epollserver.cpp
+        elseif(CMAKE_SYSTEM_NAME MATCHES APPLE)
         src/server/kqueueserver.cpp
+        endif()
         src/utils/tool.cpp
 )
 
