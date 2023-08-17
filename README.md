@@ -48,7 +48,7 @@ Disks: 439003/11G read, 452278/31G written.
 |ubuntu20.04|非阻塞io,epoll, ET|单线程|5s|28985|54687|53943|54378|72287|
 
 # 调试工具
-## (1) netstat
+##  netstat
 用于检测服务器是否正常创建
 ```bash
 netstat -an | grep LISTEN
