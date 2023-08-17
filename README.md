@@ -50,6 +50,28 @@ subgraph B7[任务,工作线程]
 end
 ```
 
+**src/server/epollserver.cpp**
+```mermaid
+graph TB
+A(开始)
+A-->B
+B-.->C[[EpollServer::reactorListen&#40&#41]]
+subgraph B[单reactor多线程监听,主线程]
+    B1[创建服务器,绑定ip地址]
+    B1-->B2[设置服务器socket为非阻塞IO]
+    B2-->B3[创建事件表]
+    B3-->B4[添加服务器socket到事件表]
+    B4-->B5[epoll_wait监听事件表,et模式]
+    B5-->B6[/从事件表中取出文件描述符/]
+    B6--等于服务器socket-->B7[accept取出套接字,添加到事件表]-->B6
+    B6--不等于服务器socket-->B8[申请缓冲区内存]
+    B8-->B9
+    B9[工作线程]
+end
+B9-.->B10[s]
+```
+
+
 
 # 代码debug日志
 都位于本地回环测试
