@@ -1,19 +1,55 @@
-# 运行环境
+# 1.运行环境
 macOS(macbook air M2,   核总数:8（4性能和4能效)
 ubuntu20.04(i5-12400, 12核, 18432kb缓存)
 
-# 依赖
+# 2.依赖
 ```bash
 glog
 ```
 
-# 编译运行
+# 3.编译运行
 ```bash
 mkdir build
 cd build
 make -j12
 ./bin/qtserver
 ```
+# 4.程序框架
+## 4.1 网络模式
+```mermaid
+graph LR
+A[对比]
+A-->B[Reactor]-->B1[基于待完成的i/o事件,需要调用recv,send函数]
+A-->C[Proactor]-->C1[基于已完成的i/o事件,aio系列函数并不是真正的操作系统级别,windows有一套iocp]
+```
+
+### (1) 单reactor多线程(线程池)
+**src/server/selectserver.cpp**
+```mermaid
+graph TB
+A(开始)
+A-->B
+B-.->C[[SelectServer::reactorListen&#40&#41]]
+subgraph B[单reactor多线程监听,主线程]
+    B1[创建服务器,绑定ip地址]
+    B1-->B2[设置服务器socket为非阻塞IO]
+    B2-->B3[accept从全连接队列取出就绪的文件描述符]
+    B3-->B4[/判断取出的套接字sock是否合法/]
+    B4--不合法-->B5[关闭或继续]-->B3
+    B4--合法-->B6[创建任务,传递sock,添加到工作线程]
+end
+B6-.->B7
+subgraph B7[任务,工作线程]
+    B71[申请存储数据的缓冲区内存]-->B72[/select监测sock是否有数据到达/]
+    B72--超时-->B73[退出工作线程]
+    B72--数据到达-->B74[recv读取数据]
+    B74-->B75[处理数据]
+    B75-->B76[send发送数据]
+    B76-->B77[释放申请的缓冲内存]
+    B77-->B73
+end
+```
+
 
 # 代码debug日志
 都位于本地回环测试
