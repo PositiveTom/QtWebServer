@@ -1,5 +1,5 @@
 ## 此分支不是最新分支：
-+ 最新的去Qt的Web服务器分支（为了适配未安全Qt的电脑测试代码）：https://github.com/PositiveTom/QtWebServer/tree/mac
++ 最新的去Qt的Web服务器分支（为了适配未安装Qt的电脑测试代码）：https://github.com/PositiveTom/QtWebServer/tree/mac
 + 最小堆实现github：https://github.com/PositiveTom/minheap
 
 
