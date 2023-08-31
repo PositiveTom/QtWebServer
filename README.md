@@ -1,3 +1,8 @@
+## 此分支不是最新分支：
+最新的去Qt的Web服务器分支（为了适配未安全Qt的电脑测试代码）：https://github.com/PositiveTom/QtWebServer/tree/mac
+最小堆实现github：https://github.com/PositiveTom/minheap
+
+
 #  环境
 推荐ubuntu, MacOS环境待后续替换epoll等linux特有函数即可兼容
 
