@@ -1,4 +1,4 @@
-## 此分支不是最新分支：
+## 此分支不是最新分支，最新分支以及相关代码如下所示：
 + 最新的去Qt的Web服务器分支（为了适配未安装Qt的电脑测试代码）：https://github.com/PositiveTom/QtWebServer/tree/mac
 + 最小堆实现github：https://github.com/PositiveTom/minheap
 
